@@ -1,0 +1,8 @@
+#!/bin/bash
+
+./bmpread $1 | 
+./rgb2gray | 
+./edge |
+./straight |
+./imshow
+
