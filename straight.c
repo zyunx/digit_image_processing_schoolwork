@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-#define THETA_SAMPLE	50
+#define THETA_SAMPLE	180
 #define P_HALF_SAMPLE	200
 #define P_SAMPLE		(2*P_HALF_SAMPLE)
 
@@ -36,7 +36,6 @@ int detect_straightline(struct intensity_image *img,
 			if (img->intensity[i*img->width + j] > EDGE_THRESHHOLD)
 			{
 			//	fprintf(stderr, "DOT [%d, %d]\n", j, i);
-
 				for (k = 0; k < THETA_SAMPLE; k++)
 				{
 					p = TRANS_P(j, i, k * M_PI / THETA_SAMPLE);
@@ -112,10 +111,10 @@ int main(int argc, char **argv)
 	to = intensity_image_construct(img->width, img->height);
 
 	detect_straightline(img, to);
-
+	
 	intensity_image_write(to, stdout);
 
-	intensity_image_destroy(img);
+	intensity_image_destroy(to);
 	intensity_image_destroy(img);
 	return 0;
 }

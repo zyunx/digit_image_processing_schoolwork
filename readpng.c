@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -23,17 +24,34 @@
 	 (((x) & 0x0000FF00) <<  8) | \
 	 (((x) & 0x000000FF) << 24))
 
+#define ntoh32 hton32
+
 struct chunk_header
 {
 	uint32_t len;
 	char type[4];
 };
 
+struct chunkdata_IHDR
+{
+	uint32_t width;
+	uint32_t height;
+	uint8_t bit_depth;
+	uint8_t color_type;
+	uint8_t compression_method;
+	uint8_t filter_method;
+	uint8_t interlace_method;
+};
+
+static char image_data[10000000];
+static int image_data_size = 0;
+
 int main()
 {
 	unsigned char *addr;
 	unsigned char *chunks;
 	struct chunk_header *chdr;
+	struct chunkdata_IHDR *ihdr;
 	int fd;
 	struct stat sb;
 
@@ -58,15 +76,56 @@ int main()
 		printf("PNG file\n");
 		chunks = addr + 8;
 
+		printf("chuncks:\n");
 		do
 		{
-			chdr = (struct chunk_hear*) chunks;
+			chdr = (struct chunk_header*) chunks;
 			chunks += 8 + hton32(chdr->len) + 4;
 			printf("%c%c%c%c %d\n", chdr->type[0],
 					chdr->type[1],
 					chdr->type[2],
 					chdr->type[3],
 					hton32(chdr->len));
+
+			if (chdr->type[0] == 'I' &&
+					chdr->type[1] == 'H' &&
+					chdr->type[2] == 'D' &&
+					chdr->type[3] == 'R')
+			{
+				ihdr = (struct chunkdata_IHDR*)(chdr + 1);
+				printf("Width: %u Height: %u " \
+						"Bit depth: %u Color type: %u\n" \
+						"Compression: %u " \
+						"Filter: %u " \
+						"Interlace: %u\n",
+						ntoh32(ihdr->width),
+						ntoh32(ihdr->height),
+						ihdr->bit_depth,
+						ihdr->color_type,
+						ihdr->compression_method,
+						ihdr->filter_method,
+						ihdr->interlace_method);
+			} else if (chdr->type[0] == 'I' &&
+					chdr->type[1] == 'D' &&
+					chdr->type[2] == 'A' &&
+					chdr->type[3] == 'T')
+			{
+				printf("m1\n");
+				memcpy(&(image_data[image_data_size]),
+						chdr + 1,
+						chdr->len);
+printf("m\n");
+				if (image_data_size == 0)
+				{
+					printf("Zlib:\n");
+					printf("Compression method: %d " \
+							"Additional flags: %d\n",
+							image_data[image_data_size],
+							image_data[image_data_size+1]);
+				}
+				
+				image_data_size += chdr->len;	
+			}
 
 		} while(!(chdr->type[0] == 'I' &&
 					chdr->type[1] == 'E' &&

@@ -30,7 +30,7 @@ int main()
 	{
 		for (j = 0; j < width; j++)
 		{
-			scanf("%d", &rgb);
+			scanf("%u", &rgb);
 			printf("%f ", rgb2gray(rgb));
 		}
 		printf("\n");

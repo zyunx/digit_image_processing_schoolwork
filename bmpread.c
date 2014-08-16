@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	assert(fd != -1);
 
 	assert(fstat(fd, &sb) != -1);
-	fprintf(stderr, "%d\n", sb.st_size);
+	//fprintf(stderr, "%d\n", sb.st_size);
 	addr = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	assert(addr != MAP_FAILED);
 
@@ -95,27 +95,29 @@ int main(int argc, char **argv)
 
 		if (bmpInfoHdr->bits_per_pixel == 32)
 		{
+			uint32_t width, height;
 			uint32_t *pixels = 
 				(uint32_t *)(addr + bmphdr->pixel_array_offset);
 
-			struct dips_image img;
-			img.width = bmpInfoHdr->width;
-			img.height = bmpInfoHdr->height;
-			img.intensity = (uint8_t *) malloc(img.width * img.height);
-			uint8_t *pi = img.intensity;
+			width = bmpInfoHdr->width;
+			height = bmpInfoHdr->height;
 			uint32_t *pp = pixels;
 			int i;
-			printf("%d %d\n", img.width, img.height);
-			for (i = 0; i < img.width * img.height ; i++)
+			printf("%d %d\n", width, height);
+			for (i = 0; i < width * height ; i++)
 			{
 		
-				printf("%d ", *pp);
+				printf("%u ", *pp);
 				//
 				//*pi = rgb2gray(*pp);
 				//pi++;
 				pp++;
 
 			}
+		}
+		else
+		{
+			fprintf(stderr, "Not a supported bmp file.\n");
 		}
 
 	}
