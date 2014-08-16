@@ -1,0 +1,12 @@
+#!/bin/bash
+
+./bmpread $1 | 
+./rgb2gray | 
+./edge |
+./straight > s1.i
+
+./bmpread $1 |
+./rgb2gray |
+./edge > s2.i
+
+cat s1.i s2.i | ./union | ./imshow
